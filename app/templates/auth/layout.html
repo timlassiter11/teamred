@@ -15,8 +15,11 @@
     <div class="container body-content">
         <div class="vstack gap-3 mx-auto px-3">
             <div class="hstack gap-3 mx-auto my-4">
-                <h1 class="text-center text-light fw-normal">{{ title }}</h1>
+                <a href="/">
+                    <img class="mx-auto d-block" src="/static/images/logo.png" width="250" height="80" alt="">
+                </a>
             </div>
+            <h1 class="text-center text-light fw-normal">{{ title }}</h1>
             <div class="col">
                 <div class="mx-auto" style="max-width: 540px;">
                     {% block messages %}
