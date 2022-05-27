@@ -39,15 +39,15 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="ms-md-auto navbar-nav">
                     {% if current_user.is_anonymous %}
-                    <li class="nav-item"><a class="nav-link p-2" href="{{ url_for('register') }}"><i class="bi bi-person-fill mx-2"></i><i>Sign Up</i></a></li>
-                    <li class="nav-item"><a class="nav-link p-2" href="{{ url_for('login', next=url_for(endpoint)) }}"><i class="bi bi-box-arrow-in-right mx-2"></i></i>Login</i></a></li>
+                    <li class="nav-item"><a class="nav-link p-2" href="{{ url_for('auth.register') }}"><i class="bi bi-person-fill mx-2"></i><i>Sign Up</i></a></li>
+                    <li class="nav-item"><a class="nav-link p-2" href="{{ url_for('auth.login', next=url_for(endpoint)) }}"><i class="bi bi-box-arrow-in-right mx-2"></i></i>Login</i></a></li>
                     {% else %}
                     <li class="nav-item dropdown">
                         <a class="nav-item nav-link dropdown-toggle me-md-2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="user-menu">
                             {{ current_user.first_name }}
                         </a>
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="user-menu">
-                            <a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
                         </div>
                     </li>
                     {% endif %}

@@ -1,33 +1,28 @@
+from app import db
+from app import login as login_manager
+from app.auth import bp
+from app.email import send_email
+from app.forms import (LoginForm, RegistrationForm, ResetPasswordForm,
+                       ResetPasswordRequestForm)
+from app.models import User
 from flask import (current_app, flash, redirect, render_template, request,
                    url_for)
 from flask_login import current_user, login_user, logout_user
 from werkzeug.urls import url_parse
 
-from app import app, db, login
-from app.email import send_email
-from app.forms import (LoginForm, RegistrationForm, ResetPasswordForm,
-                       ResetPasswordRequestForm)
-from app.models import User
 
-
-@app.route('/')
-def home():
-    return render_template(
-        'index.html',
-    )
-
-
-@login.unauthorized_handler
+@login_manager.unauthorized_handler
 def unauthorized_callback():
     if request.method == 'GET':
-        return redirect(url_for('login', next=request.path))
-    return redirect(url_for('login'))
+        return redirect(url_for('auth.login', next=request.path))
+    return redirect(url_for('auth.login'))
 
 
-@app.route('/login', methods=['GET', 'POST'])
+
+@bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -38,7 +33,7 @@ def login():
             login_user(user, remember=form.remember_me.data)
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
-                next_page = url_for('home')
+                next_page = url_for('main.home')
             return redirect(next_page)
     elif form.errors:
         for error in form.errors.values():
@@ -46,16 +41,16 @@ def login():
     return render_template('auth/login.html', title='Sign In', form=form)
 
 
-@app.route('/logout')
+@bp.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('main.home'))
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(
@@ -66,8 +61,9 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
+        login_user(user)
         flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('login', next=url_for('home')))
+        return redirect(url_for('main.home'))
     elif form.errors:
         for error in form.errors.values():
             flash(error[0], 'danger')
@@ -75,7 +71,7 @@ def register():
                            form=form)
 
 
-@app.route('/reset_password_request', methods=['GET', 'POST'])
+@bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
     form = ResetPasswordRequestForm()
     if form.validate_on_submit():
@@ -83,7 +79,7 @@ def reset_password_request():
         if user:
             if send_password_reset_email(user):
                 flash('Email successfully sent.', 'success')
-                return redirect(url_for('login'))
+                return redirect(url_for('auth.login'))
             else:
                 flash('Error sending email... please try again')
         else:
@@ -95,21 +91,21 @@ def reset_password_request():
     )
 
 
-@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+@bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
 
     user = User.verify_reset_password_token(token)
     if not user:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
 
     form = ResetPasswordForm()
     if form.validate_on_submit():
         user.set_password(form.password.data)
         db.session.commit()
         flash('Password successfully reset')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
     else:
         for error in form.errors.values():
             flash(error[0], 'danger')
