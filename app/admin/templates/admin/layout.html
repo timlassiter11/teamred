@@ -2,8 +2,13 @@
 
 {% set endpoint = '' -%}
 {% if request.endpoint -%}
-{% set endpoint = request.endpoint -%}
+    {% set endpoint = request.endpoint -%}
 {% endif -%}
+
+{% block styles %}
+{{ super() }}
+<link href="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.css" rel="stylesheet">
+{% endblock %}
 
 {% block body %}
 <body>
@@ -13,41 +18,27 @@
             <a class="navbar-brand" href="/">
                 <img src="/static/images/logo.png" alt="" width="180" height="50">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link{% if endpoint == 'main.home' %} active {% endif %}" aria-current="page" href="#">Home</a>
+                        <a class="nav-link{% if endpoint == 'admin.home' %} active {% endif %}" aria-current="page" href="{{ url_for('admin.home') }}">Home</a>
                     </li>
-                    {% if current_user.admin %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.home') }}">Admin</a>
+                        <a class="nav-link{% if endpoint == 'admin.users' %} active {% endif %}" href="{{ url_for('admin.users') }}">Users</a>
                     </li>
-                    {% endif %}
                 </ul>
                 <ul class="navbar-nav">
-                    {% if current_user.is_anonymous %}
-                    <li class="nav-item"><a class="nav-link p-2" href="{{ url_for('auth.register') }}"><i
-                                class="bi bi-person-fill mx-2"></i><i>Sign Up</i></a></li>
-                    <li class="nav-item"><a class="nav-link p-2"
-                            href="{{ url_for('auth.login', next=url_for(endpoint)) }}"><i
-                                class="bi bi-box-arrow-in-right mx-2"></i></i>Login</i></a></li>
-                    {% else %}
                     <li class="nav-item dropdown">
-                        <a class="nav-item nav-link dropdown-toggle me-md-2" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false" id="user-menu">
+                        <a class="nav-item nav-link dropdown-toggle me-md-2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="user-menu">
                             {{ current_user.first_name }}
                         </a>
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="user-menu">
-                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i
-                                    class="bi bi-box-arrow-left"></i> Logout</a>
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
                         </div>
                     </li>
-                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -57,13 +48,13 @@
         {% block messages %}
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        {% for category, message in messages %}
-        {% if category == 'message' %}{% set category = 'primary' %}{% endif %}
-        <div class="alert alert-{{category}} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
+            {% for category, message in messages %}
+            {% if category == 'message' %}{% set category = 'primary' %}{% endif %}
+            <div class="alert alert-{{category}} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
         {% endif %}
         {% endwith %}
         {% endblock %}
@@ -91,6 +82,9 @@
         </footer>
         {% endblock %}
     </div>
+    {% block scripts %}
     {{ super() }}
+    <script src="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.js"></script>
+    {% endblock %}
 </body>
 {% endblock %}
