@@ -14,6 +14,8 @@ mail = Mail()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.config['TRAP_HTTP_EXCEPTIONS'] = True
+    
     db.init_app(app)
     login.init_app(app)
     mail.init_app(app)
