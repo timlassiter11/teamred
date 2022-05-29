@@ -1,19 +1,42 @@
 import os
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from flask_mail import Mail
 
 from config import Config
+from flask import Flask
+from flask_login import LoginManager
+from flask_mail import Mail
+from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
-app.config.from_object(Config)
-db = SQLAlchemy(app)
-login = LoginManager(app)
-mail = Mail(app)
+db = SQLAlchemy()
+login = LoginManager()
+mail = Mail()
 
 
-from app import routes, models
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+    app.config['TRAP_HTTP_EXCEPTIONS'] = True
+    
+    db.init_app(app)
+    login.init_app(app)
+    mail.init_app(app)
 
-if not os.path.exists('app.db'):
-    db.create_all()
+    from app.auth import bp as auth_bp
+    app.register_blueprint(auth_bp)
+
+    from app.main import bp as main_bp
+    app.register_blueprint(main_bp)
+
+    from app.admin import bp as admin_bp
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+
+    from app.errors import bp as errors_bp
+    app.register_blueprint(errors_bp)
+
+    if not os.path.exists('app.db'):
+        with app.app_context():
+            db.create_all()
+
+    return app
+
+
+from app import models
