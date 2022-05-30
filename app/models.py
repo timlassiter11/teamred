@@ -14,10 +14,10 @@ class User(UserMixin, db.Model):
     first_name = db.Column(db.String(120))
     last_name = db.Column(db.String(120))
     password_hash = db.Column(db.String(128))
-    admin = db.Column(db.Boolean, default=False)
+    role = db.Column(db.String(10), default='user')
 
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return f'<User {self.first_name} {self.last_name}>'
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

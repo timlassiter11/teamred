@@ -6,4 +6,5 @@ from flask import render_template
 def home():
     return render_template(
         'main/index.html',
+        title='Red Eye',
     )

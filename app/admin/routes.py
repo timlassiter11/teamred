@@ -10,7 +10,7 @@ def restrict_bp_to_admins():
     if not current_user.is_authenticated:
         return redirect(url_for('auth.login', next=url_for(request.endpoint)))
 
-    if not current_user.admin:
+    if current_user.role != 'admin':
         abort(403)
 
 @bp.route('/')
