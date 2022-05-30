@@ -1,7 +1,8 @@
+import pytz
 from flask_wtf import FlaskForm
 from wtforms import (BooleanField, EmailField, HiddenField, PasswordField,
                      SelectField, StringField, SubmitField)
-from wtforms.validators import EqualTo, InputRequired
+from wtforms.validators import EqualTo, InputRequired, Length
 
 
 class LoginForm(FlaskForm):
@@ -55,3 +56,11 @@ class UserEditForm(MethodForm):
 class AdminUserEditForm(UserEditForm):
     role = SelectField(
         'Role', choices=[('user', 'User'), ('agent', 'Agent'), ('admin', 'Admin')])
+
+
+class AirportForm(MethodForm):
+    code = StringField('Code', validators=[
+                       InputRequired(), Length(min=3, max=3)])
+    name = StringField('Name', validators=[InputRequired()])
+    timezone = SelectField('Timezone', choices=[(
+        tz, tz) for tz in pytz.common_timezones])

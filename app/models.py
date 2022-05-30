@@ -43,3 +43,10 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
+
+class Airport(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(3), index=True, unique=True)
+    name = db.Column(db.String(120), nullable=False)
+    timezone = db.Column(db.String(120), nullable=False)
