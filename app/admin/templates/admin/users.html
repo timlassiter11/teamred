@@ -5,7 +5,8 @@
 
 {{ render_modal_form('Edit User', user_form, modal_id='userEditModal', form_id='userEditForm') }}
 
-<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -15,23 +16,22 @@
             <div class="modal-body">
             </div>
             <div class="modal-footer">
-                <button onclick="$(this).trigger('rejected.bs.modal')" type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                <button onclick="$(this).trigger('accepted.bs.modal')" type="button" class="btn btn-danger" data-bs-dismiss="modal">Yes</button>
+                <button onclick="$(this).trigger('rejected.bs.modal')" type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">No</button>
+                <button onclick="$(this).trigger('accepted.bs.modal')" type="button" class="btn btn-danger"
+                    data-bs-dismiss="modal">Yes</button>
             </div>
         </div>
     </div>
 </div>
 
-<table 
-    id="userTable" 
-    data-pagination="true" 
-    data-search="true" 
-    data-click-to-select="true">
+<table id="userTable" data-pagination="true" data-search="true" data-click-to-select="true">
     <thead>
         <tr>
             <th>First</th>
             <th>Last</th>
             <th>Email</th>
+            <th>Role</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -41,10 +41,13 @@
             <td id="firstName{{ user.id }}">{{ user.first_name }}</td>
             <td id="lastName{{ user.id }}">{{ user.last_name }}</td>
             <td id="email{{ user.id }}">{{ user.email }}</td>
+            <td id="role{{ user.id }}">{{ user.role }}</td>
             <td>
-                <button class="btn edit-btn" type="button" data-user-id="{{ user.id }}"><i class="bi bi-pencil"></i></button>
+                <button class="btn edit-btn" type="button" data-user-id="{{ user.id }}"><i
+                        class="bi bi-pencil"></i></button>
                 {% if user.id != current_user.id %}
-                <button class="btn delete-btn" type="button" data-user-id="{{ user.id }}"><i class="bi bi-trash"></i></button>
+                <button class="btn delete-btn" type="button" data-user-id="{{ user.id }}"><i
+                        class="bi bi-trash"></i></button>
                 {% endif %}
             </td>
         </tr>
@@ -71,20 +74,22 @@
             locale: 'en-US'
         })
 
-        $('.edit-btn').click(function() {
+        $('.edit-btn').click(function () {
             const userId = $(this).data('user-id')
             const firstName = $(`#firstName${userId}`).text()
             const lastName = $(`#lastName${userId}`).text()
             const email = $(`#email${userId}`).text()
-            
+            const role = $(`#role${userId}`).text()
+
             $userEditForm.find('#first_name').val(firstName)
             $userEditForm.find('#last_name').val(lastName)
             $userEditForm.find('#email').val(email)
+            $userEditForm.find('#role').val(role)
             $userEditForm.attr('action', `/admin/users/${userId}`)
             userEditModal.show()
         })
 
-        $('.delete-btn').click(function() {
+        $('.delete-btn').click(function () {
             const userId = $(this).data('user-id')
             const firstName = $(`#firstName${userId}`).text()
             const lastName = $(`#lastName${userId}`).text()
@@ -93,21 +98,21 @@
             confirmationModal.show()
         })
 
-        $confirmationModal.on('accepted.bs.modal', function(event) {
+        $confirmationModal.on('accepted.bs.modal', function (event) {
             const userId = $confirmationModal.data('user-id')
             $userEditForm.attr('action', `/admin/users/${userId}`)
             $userEditForm.find('#method').val('DELETE')
             $userEditForm.submit()
         })
 
-        $userEditForm.submit(function(event){
+        $userEditForm.submit(function (event) {
             event.preventDefault();
             const url = $userEditForm.attr('action')
             $.ajax({
                 url: url,
                 type: 'post',
                 data: $userEditForm.serialize(),
-                success:function(){
+                success: function () {
                     location.reload()
                 }
             })

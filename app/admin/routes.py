@@ -2,7 +2,7 @@ from flask import redirect, render_template, abort, request, url_for
 from flask_login import current_user
 from app import db
 from app.admin import bp
-from app.forms import UserEditForm
+from app.forms import AdminUserEditForm
 from app.models import User
 
 @bp.before_request
@@ -20,7 +20,7 @@ def home():
 
 @bp.route('/users')
 def users():
-    user_form = UserEditForm()
+    user_form = AdminUserEditForm()
     return render_template(
         'admin/users.html',
         users=User.query.all(),
@@ -33,12 +33,13 @@ def user(user_id):
     if user is None:
         abort(404)
 
-    user_form = UserEditForm()
+    user_form = AdminUserEditForm()
     if user_form.validate_on_submit():
         if user_form.method.data == 'POST':
             user.email = user_form.email.data
             user.first_name = user_form.first_name.data
             user.last_name = user_form.last_name.data
+            user.role = user_form.role.data
             db.session.commit()
         elif user_form.method.data == 'DELETE':
             db.session.delete(user)

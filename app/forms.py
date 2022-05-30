@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, EmailField, PasswordField, SubmitField, StringField, HiddenField
+from wtforms import (BooleanField, EmailField, HiddenField, PasswordField,
+                     SelectField, StringField, SubmitField)
 from wtforms.validators import EqualTo, InputRequired
 
 
@@ -44,7 +45,13 @@ class MethodForm(FlaskForm):
             return self.csrf_token.validate(self)
         return super().validate(extra_validators=extra_validators)
 
+
 class UserEditForm(MethodForm):
     email = EmailField('Email', validators=[InputRequired()])
     first_name = StringField('First Name', validators=[InputRequired()])
     last_name = StringField('Last Name', validators=[InputRequired()])
+
+
+class AdminUserEditForm(UserEditForm):
+    role = SelectField(
+        'Role', choices=[('user', 'User'), ('agent', 'Agent'), ('admin', 'Admin')])
