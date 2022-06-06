@@ -11,7 +11,7 @@ login = LoginManager()
 mail = Mail()
 
 
-def create_app(config_class=Config):
+def create_app(config_class=Config) -> "Flask":
     app = Flask(__name__)
     app.config.from_object(config_class)
     app.config['TRAP_HTTP_EXCEPTIONS'] = True
@@ -32,6 +32,9 @@ def create_app(config_class=Config):
 
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)
+
+    from app.api import bp as api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
 
     return app
 

@@ -44,6 +44,8 @@ def user(user_id):
             user.email = user_form.email.data
             user.first_name = user_form.first_name.data
             user.last_name = user_form.last_name.data
+            # TODO: Think about how changing the role from agent to user
+            # would affect things such as agents sales. 
             user.role = user_form.role.data
             try:
                 db.session.commit()
@@ -73,7 +75,6 @@ def airports():
     return render_template(
         'admin/airports.html',
         title='Airports',
-        airports=Airport.query.all(),
         airport_form=airport_form
     )
 
@@ -90,7 +91,12 @@ def airport(airport_id):
             airport.code = airport_form.code.data
             airport.name = airport_form.name.data
             airport.timezone = airport_form.timezone.data
-            db.session.commit()
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                flash('Airport with that code already exists', category='danger')
+            
         elif airport_form.method.data == 'DELETE':
             db.session.delete(airport)
             db.session.commit()

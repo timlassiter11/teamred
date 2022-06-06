@@ -1,11 +1,35 @@
 from time import time
 
 import jwt
-from flask import current_app
+from flask import current_app, url_for
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, login
+
+
+class PaginatedAPIMixin:
+    @staticmethod
+    def to_collection_dict(query, page, per_page, endpoint, **kwargs):
+        resources = query.paginate(page, per_page, False)
+        data = {
+            'items': [item.to_dict() for item in resources.items],
+            '_meta': {
+                'page': page,
+                'per_page': per_page,
+                'total_pages': resources.pages,
+                'total_items': resources.total
+            },
+            '_links': {
+                'self': url_for(endpoint, page=page, per_page=per_page,
+                                **kwargs),
+                'next': url_for(endpoint, page=page + 1, per_page=per_page,
+                                **kwargs) if resources.has_next else None,
+                'prev': url_for(endpoint, page=page - 1, per_page=per_page,
+                                **kwargs) if resources.has_prev else None
+            }
+        }
+        return data
 
 
 class User(UserMixin, db.Model):
@@ -45,8 +69,18 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-class Airport(db.Model):
+class Airport(PaginatedAPIMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(3), index=True, unique=True)
     name = db.Column(db.String(120), nullable=False)
     timezone = db.Column(db.String(120), nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'code': self.code,
+            'name': self.name,
+            'timezone': self.timezone
+        }
+
+

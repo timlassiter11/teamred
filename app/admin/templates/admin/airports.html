@@ -2,12 +2,12 @@
 {% from 'bootstrap/modals.html' import render_modal_form, render_confirmation_modal %}
 
 {% block title_button %}
-<button id="addAirportButton" class="btn btn-primary" type="button">Add Airport</button>
+<button data-bs-toggle="modal" data-bs-target="#airportModal" class="btn btn-primary" type="button">Add Airport</button>
 {% endblock %}
 
 {% block content %}
 
-{{ render_modal_form('Airport', airport_form, modal_id='airportModal', form_id='airportForm') }}
+{{ render_modal_form('Airport', airport_form, modal_id='airportModal', form_id='airportForm', left_button_id='deleteButton', left_button_text='Delete', left_button_class='btn-danger') }}
 
 <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
     aria-hidden="true">
@@ -29,44 +29,73 @@
     </div>
 </div>
 
-{% if airports %}
-<table id="airportTable" data-pagination="true" data-search="true" data-click-to-select="true">
+<table 
+    id="airportTable"
+    data-toggle="table"
+    data-height="550"
+    data-ajax="getAirports"
+    data-data-field="items"
+    data-total-field="total"
+    data-side-pagination="server"
+    data-query-params="queryParams"
+    data-pagination="true"
+    data-search="true">
     <thead>
         <tr>
-            <th>Code</th>
-            <th>Name</th>
-            <th>Timezone</th>
-            <th>Actions</th>
+            <th data-field="code">Code</th>
+            <th data-field="name">Name</th>
+            <th data-field="timezone">Timezone</th>
+            <th data-formatter="actionFormatter">Actions</th>
         </tr>
     </thead>
-    <tbody>
-        {% for airport in airports %}
-        <tr>
-            <td id="code{{ airport.id }}">{{ airport.code }}</td>
-            <td id="name{{ airport.id }}">{{ airport.name }}</td>
-            <td id="timezone{{ airport.id }}">{{ airport.timezone }}</td>
-            <td>
-                <button class="btn edit-btn" type="button" data-airport-id="{{ airport.id }}"><i
-                        class="bi bi-pencil"></i></button>
-                <button class="btn delete-btn" type="button" data-airport-id="{{ airport.id }}"><i
-                        class="bi bi-trash"></i></button>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
 </table>
-{% else %}
-<p>It looks like no airports have been added. Maybe you should add one?</p>
-{% endif %}
 
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
+<script src="/static/scripts/modalform.js"></script>
 <script>
-    $(document).ready(function () {
-        const $airportTable = $('#airportTable')
 
+    // Creates the elements for the "Actions" column in the airport table
+    function actionFormatter(value, row, index, field) {
+        return `<button 
+                    class="btn" 
+                    type="button" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#airportModal"
+                    data-action="/admin/airports/${row.id}"
+                    data-name="${row.name}" 
+                    data-code="${row.code}" 
+                    data-timezone="${row.timezone}">
+                        <i class="bi bi-pencil"></i>
+                </button>`
+    }
+
+    // Gets the airports from the API and formats the data for Bootstrap Table
+    // https://examples.bootstrap-table.com/#options/table-ajax.html#view-source
+    function getAirports(params) {
+        var url = "{{ url_for('api.airports') }}"
+        $.get(url + '?' + $.param(params.data)).then(function (res) {
+            // Bootstrap Table expects a total number of items 
+            // so it can calculate how many pages and a list of items.
+            params.success({total: res._meta.total_items, items: res.items})
+        })
+    }
+
+    // Bootstrap Table uses limit and offset but our API uses pages and page size.
+    // Convert the limit and and offset to our pages and page size.
+    // https://examples.bootstrap-table.com/#options/query-params.html#view-source
+    function queryParams(params) {
+        page = params.offset / params.limit
+        return {
+            page: page + 1,
+            per_page: params.limit,
+            search: params.search
+        }
+    }
+
+    $(document).ready(function () {
         const $airportForm = $('#airportForm')
 
         const $airportModal = $('#airportModal')
@@ -75,56 +104,52 @@
         const $confirmationModal = $('#confirmationModal')
         const confirmationModal = bootstrap.Modal.getOrCreateInstance($confirmationModal[0])
 
-        $airportTable.bootstrapTable('destroy').bootstrapTable({
-            locale: 'en-US'
-        })
+        const $airportTable = $('#airportTable')
 
-        $('#addAirportButton').click(function() {
-            $airportForm.find('#code').val('')
-            $airportForm.find('#name').val('')
-            $airportForm.find('#timezone').val('')
-            $airportForm.attr('action', `/admin/airports`)
-            $airportForm.removeClass('was-validated')
-            airportModal.show()
-        })
+        // Automatically populate form info like method and action
+        // based on data attributes from the button that triggered
+        // the modal show event.
+        $('.modal').modalform();
 
-        $('.edit-btn').click(function () {
-            const airportId = $(this).data('airport-id')
-            const code = $(`#code${airportId}`).text()
-            const name = $(`#name${airportId}`).text()
-            const timezone = $(`#timezone${airportId}`).text()
-
-            $airportForm.find('#code').val(code)
-            $airportForm.find('#name').val(name)
-            $airportForm.find('#timezone').val(timezone)
-            $airportForm.attr('action', `/admin/airports/${airportId}`)
-            $airportForm.removeClass('was-validated')
-            airportModal.show()
-        })
-
-        $('.delete-btn').click(function () {
-            const airportId = $(this).data('airport-id')
-            const code = $(`#code${airportId}`).text()
-            $confirmationModal.data('airport-id', airportId)
-            $confirmationModal.find('.modal-body').append(`<p>Are you sure you want to delete the airport <b>${code}</b>?</p>`)
+        $('#deleteButton').click(function() {
+            airportModal.hide()
+            const code = $airportForm.find('#code').val()
+            $confirmationModal.find('.modal-body').html(`<p>Are you sure you want to delete the airport <b>${code}</b>?</p>`)
             confirmationModal.show()
-        })
 
-        $confirmationModal.on('accepted.bs.modal', function (event) {
-            const airportId = $confirmationModal.data('airport-id')
-            $airportForm.attr('action', `/admin/airports/${airportId}`)
-            $airportForm.find('#method').val('DELETE')
-            $airportForm.submit()
+            $confirmationModal.one('accepted.bs.modal', function(event) {
+                $airportForm.find('#method').val('DELETE')
+                $airportForm.submit()
+            })
+
+            $confirmationModal.one('rejected.bs.modal', function(event) {
+                airportModal.show();
+            })
+
+            $confirmationModal.on('hidden.bs.modal', function() {
+                $confirmationModal.off('accepted.bs.modal');
+                $confirmationModal.off('rejected.bs.modal');
+            })
         })
 
         // Handle form validation as per Bootstrap docs
+        // https://getbootstrap.com/docs/5.1/forms/validation/#custom-styles
         $('form.needs-validation').submit(function(event) {
             const $form = $(this);
+            event.preventDefault()
             if (this.checkValidity() === false) {
-                event.preventDefault()
-                event.stopPropagation();
-            } 
-            $form.addClass('was-validated');
+                event.stopPropagation()
+            } else {
+                const action = $form.attr('action')
+                // TODO: Figure out how to deal with server side form errors.
+                // For example submitting an airport with the same code.
+                $.post(action, $form.serialize())
+                    .done(function(data) {
+                        airportModal.hide()
+                        $airportTable.bootstrapTable('refresh')
+                    })
+            }
+            $form.addClass('was-validated')
         })
     })
 </script>
