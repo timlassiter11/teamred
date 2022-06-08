@@ -9,6 +9,12 @@ from app import db, login
 
 
 class PaginatedAPIMixin:
+    def to_dict(self):
+        data = dict(self.__dict__)
+        # SQLAlchemy models contain an extra field that we don't want to expose.
+        data.pop('_sa_instance_state', None)
+        return data
+
     @staticmethod
     def to_collection_dict(query, page, per_page, endpoint, **kwargs):
         resources = query.paginate(page, per_page, False)
@@ -75,12 +81,13 @@ class Airport(PaginatedAPIMixin, db.Model):
     name = db.Column(db.String(120), nullable=False)
     timezone = db.Column(db.String(120), nullable=False)
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'code': self.code,
-            'name': self.name,
-            'timezone': self.timezone
-        }
+
+class Airplane(PaginatedAPIMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    registration_number = db.Column(db.String(120), index=True, unique=True)
+    model_name = db.Column(db.String(120), nullable=False)
+    model_code = db.Column(db.String(120), nullable=False)
+    capacity = db.Column(db.Integer, nullable=False)
+
 
 

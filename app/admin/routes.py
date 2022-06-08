@@ -1,9 +1,10 @@
 from app import db
 from app.admin import bp
-from app.forms import AdminUserEditForm, AirportForm
-from app.models import Airport, User
+from app.forms import AdminUserEditForm, AirplaneForm, AirportForm
+from app.models import Airplane, Airport, User
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user
+from sqlalchemy.inspection import inspect
 from sqlalchemy.exc import IntegrityError
 
 
@@ -59,46 +60,33 @@ def user(user_id):
     return redirect(url_for('admin.users'))
 
 
-@bp.route('/airports', methods=['GET', 'POST'])
+@bp.route('/airports', methods=['GET'])
 def airports():
-    airport_form = AirportForm()
-    if airport_form.validate_on_submit():
-        airport = Airport()
-        airport_form.populate_obj(airport)
-        db.session.add(airport)
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            flash('Airport with that code already exists', category='danger')
-
+    form = AirportForm()
+    columns = _get_columns(Airport, ['id'])
     return render_template(
-        'admin/airports.html',
+        'admin/table.html',
         title='Airports',
-        airport_form=airport_form
+        form=form,
+        table_name='Airport',
+        url=url_for('api.airports'),
+        columns=columns
     )
 
 
-@bp.route('/airports/<airport_id>', methods=['POST'])
-def airport(airport_id):
-    airport = Airport.query.get(int(airport_id))
-    if airport is None:
-        abort(404)
+@bp.route('/airplanes', methods=['GET'])
+def airplanes():
+    form = AirplaneForm()
+    columns = _get_columns(Airplane, ['id'])
+    return render_template(
+        'admin/table.html',
+        title='Airplanes',
+        form=form,
+        table_name='Airplanes',
+        url=url_for('api.airplanes'),
+        columns=columns
+    )
 
-    airport_form = AirportForm()
-    if airport_form.validate_on_submit():
-        if airport_form.method.data == 'POST':
-            airport.code = airport_form.code.data
-            airport.name = airport_form.name.data
-            airport.timezone = airport_form.timezone.data
-            try:
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-                flash('Airport with that code already exists', category='danger')
-            
-        elif airport_form.method.data == 'DELETE':
-            db.session.delete(airport)
-            db.session.commit()
 
-    return redirect(url_for('admin.airports'))
+def _get_columns(model, exclude=[]):
+    return [column.name for column in inspect(model).columns if column.name not in exclude]
