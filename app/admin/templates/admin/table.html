@@ -114,6 +114,7 @@
         $('.modal').modalform();
 
         $formModal.on('show.bs.modal', function(event) {
+            $form.removeClass('was-validated')
             // Hide the delete button on the modal if the user is adding a new airport
             if (event.relatedTarget === $('#addButton')[0]) {
                 $('#deleteButton').hide()
