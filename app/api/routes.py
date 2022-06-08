@@ -98,11 +98,27 @@ class Airplanes(Resource):
 
 class Airplane(Resource):
     def get(self, airplane_id):
-        pass
+        airplane = get_or_404(models.Airplane, airplane_id)
+        return jsonify(airplane.to_dict())
 
+    @admin_required
     def delete(self, airplane_id):
-        pass
+        airplane = get_or_404(models.Airplane, airplane_id)
+        db.session.delete(airplane)
+        db.session.commit()
+        return '', 204
 
+    @admin_required
     def patch(self, airplane_id):
-        pass
+        airplane = get_or_404(models.Airplane, airplane_id)
+        form = AirplaneForm(data=request.json)
+        if form.validate():
+            form.populate_obj(airplane)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                json_abort(409, errors={'registration_number': 'An airplane with this registration number already exists'})
+            return jsonify(airplane.to_dict()), 201
+        json_abort(400, errors=form.errors)
 
