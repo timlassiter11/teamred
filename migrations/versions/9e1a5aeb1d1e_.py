@@ -1,4 +1,4 @@
-"""empty message
+"""Add airport table
 
 Revision ID: 9e1a5aeb1d1e
 Revises: d8a41be3e4c9

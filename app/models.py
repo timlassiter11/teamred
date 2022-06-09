@@ -88,6 +88,7 @@ class Airplane(PaginatedAPIMixin, db.Model):
     model_name = db.Column(db.String(120), nullable=False)
     model_code = db.Column(db.String(120), nullable=False)
     capacity = db.Column(db.Integer, nullable=False)
+    range = db.Column(db.Integer, nullable=False)
 
 
 

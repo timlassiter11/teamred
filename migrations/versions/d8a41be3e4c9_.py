@@ -1,4 +1,4 @@
-"""empty message
+"""Add roles column and drop admin column
 
 Revision ID: d8a41be3e4c9
 Revises: 0397d0f09b93

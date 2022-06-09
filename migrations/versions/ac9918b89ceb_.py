@@ -1,4 +1,4 @@
-"""empty message
+"""Add airplane table
 
 Revision ID: ac9918b89ceb
 Revises: 9e1a5aeb1d1e

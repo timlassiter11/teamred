@@ -1,4 +1,4 @@
-"""empty message
+"""Add user table
 
 Revision ID: 0397d0f09b93
 Revises: 

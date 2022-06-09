@@ -71,3 +71,4 @@ class AirplaneForm(FlaskForm):
     model_name = StringField('Model Name', validators=[InputRequired()])
     model_code = StringField('Model Code', validators=[InputRequired()])
     capacity = IntegerField('Capacity', validators=[InputRequired(), NumberRange(min=0)])
+    range = IntegerField('Range', validators=[InputRequired(), NumberRange(min=0)])
