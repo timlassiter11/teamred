@@ -44,7 +44,7 @@
     <thead>
         <tr>
             {% for column in columns %}
-            <th data-field="{{ column }}">{{ column.capitalize() }}</th>
+            <th data-field="{{ column }}">{{ column.capitalize().replace('_', ' ') }}</th>
             {% endfor %}
             <th data-formatter="actionFormatter">Actions</th>
         </tr>
@@ -58,7 +58,7 @@
 <script src="/static/scripts/modalform.js"></script>
 <script>
 
-    // Creates the elements for the "Actions" column in the airport table
+    // Creates the elements for the "Actions" column in the table
     function actionFormatter(value, row, index, field) {
         return `<button 
                     class="btn" 
@@ -74,7 +74,7 @@
                 </button>`
     }
 
-    // Gets the airports from the API and formats the data for Bootstrap Table
+    // Gets the items from the API and formats the data for Bootstrap Table
     // https://examples.bootstrap-table.com/#options/table-ajax.html#view-source
     function getItems(params) {
         var url = "{{ url }}"
@@ -154,8 +154,7 @@
                 const value = Object.fromEntries(data.entries())
                 const action = $form.attr('action')
                 const method = $form.attr('method')
-                // TODO: Figure out how to deal with server side form errors.
-                // For example submitting an airport with the same code.
+
                 $.ajax({
                     headers : {
                         'Accept' : 'application/json',
