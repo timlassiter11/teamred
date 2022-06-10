@@ -40,3 +40,5 @@ If not using VS Code you can simply run `python init_db.py` from within any term
 
 Once the script is complete you should see an ***app.db*** file in the root of the repository. If any issues arise or you just want to start with a fresh database simply delete the file and repeat the above steps.
 
+## Running the software
+Navigate back to the ***Run and Debug*** tab and from the dropdown select ***App***. Simply click the play icon or press `F5` to start the webserver. The launch task will automatically open your default browser and navigate to the locally hosted server.
