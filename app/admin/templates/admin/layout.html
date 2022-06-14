@@ -29,6 +29,15 @@
                     <li class="nav-item">
                         <a class="nav-link{% if endpoint == 'admin.users' %} active {% endif %}" href="{{ url_for('admin.users') }}">Users</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link{% if endpoint == 'admin.airports' %} active {% endif %}" href="{{ url_for('admin.airports') }}">Airports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link{% if endpoint == 'admin.airplanes' %} active {% endif %}" href="{{ url_for('admin.airplanes') }}">Airplanes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link{% if endpoint == 'admin.flights' %} active {% endif %}" href="{{ url_for('admin.flights') }}">Flights</a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">

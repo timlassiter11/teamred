@@ -8,6 +8,7 @@ from app.models import User
 from flask import (current_app, flash, redirect, render_template, request,
                    url_for)
 from flask_login import current_user, login_user, logout_user
+from sqlalchemy.exc import IntegrityError
 from werkzeug.urls import url_parse
 
 
@@ -60,13 +61,16 @@ def register():
         )
         user.set_password(form.password.data)
         db.session.add(user)
-        db.session.commit()
-        login_user(user)
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('main.home'))
-    elif form.errors:
-        for error in form.errors.values():
-            flash(error[0], 'danger')
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash('A user with that email already exists.', category='danger')
+        else:
+            login_user(user)
+            flash('Congratulations, you are now a registered user!')
+            return redirect(url_for('main.home'))
+
     return render_template('auth/register.html', title='Sign Up',
                            form=form)
 
