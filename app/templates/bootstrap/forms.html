@@ -23,9 +23,6 @@
             {{ subfield.label(class='btn btn-secondary') }}
             {% endfor -%}
         </div>
-    {% elif field.type == 'TagListTypeaheadField' or field.type == 'TypeaheadField' -%}
-        {{ field.label() }}
-        {{ field(class='form-control typeahead', disabled=disabled) }}
     {% else -%}
         <div class="form-floating">
             {% if field.type == 'TextAreaField' -%}

@@ -1,6 +1,6 @@
 from app import db
 from app.admin import bp
-from app.forms import AdminUserEditForm, AirplaneForm, AirportForm
+from app.forms import AdminUserEditForm, AirplaneForm, AirportForm, FlightForm
 from app.models import Airplane, Airport, User
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user
@@ -60,33 +60,31 @@ def user(user_id):
     return redirect(url_for('admin.users'))
 
 
-@bp.route('/airports', methods=['GET'])
+@bp.route('/airports')
 def airports():
     form = AirportForm()
-    columns = _get_columns(Airport, ['id'])
     return render_template(
-        'admin/table.html',
+        'admin/airports.html',
         title='Airports',
         form=form,
-        table_name='Airport',
-        url=url_for('api.airports'),
-        columns=columns
     )
 
 
-@bp.route('/airplanes', methods=['GET'])
+@bp.route('/airplanes')
 def airplanes():
     form = AirplaneForm()
-    columns = _get_columns(Airplane, ['id'])
     return render_template(
-        'admin/table.html',
+        'admin/airplanes.html',
         title='Airplanes',
         form=form,
-        table_name='Airplanes',
-        url=url_for('api.airplanes'),
-        columns=columns
     )
 
 
-def _get_columns(model, exclude=[]):
-    return [column.name for column in inspect(model).columns if column.name not in exclude]
+@bp.route('/flights')
+def flights():
+    form = FlightForm()
+    return render_template(
+        'admin/flights.html',
+        title='Flights',
+        form=form
+    )

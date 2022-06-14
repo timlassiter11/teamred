@@ -1,10 +1,10 @@
 from flask import jsonify, request
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
 from app import db, models
 from app.api.helpers import get_or_404, json_abort, admin_required
-from app.forms import AirplaneForm, AirportForm
+from app.forms import AirplaneForm, AirportForm, FlightForm
 
 
 class Airports(Resource):
@@ -15,7 +15,7 @@ class Airports(Resource):
 
         query = models.Airport.query
         if search:
-            query = query.filter(models.Airport.name.contains(search) | models.Airport.code.contains(search))
+            query = query.msearch(search)
 
         data = models.Airport.to_collection_dict(query, page, items_per_page, 'api.airports', search=search)
         return jsonify(data)
@@ -72,11 +72,7 @@ class Airplanes(Resource):
 
         query = models.Airplane.query
         if search:
-            query = query.filter(
-                models.Airplane.model_name.contains(search) | 
-                models.Airplane.registration_number.contains(search) |
-                models.Airplane.model_code.contains(search)
-            )
+            query = query.msearch(search)
 
         data = models.Airplane.to_collection_dict(query, page, items_per_page, 'api.airplanes', search=search)
         return jsonify(data)
@@ -114,6 +110,7 @@ class Airplane(Resource):
         form = AirplaneForm(data=request.json)
         if form.validate():
             form.populate_obj(airplane)
+            airplane.home_id = form.home_id
             try:
                 db.session.commit()
             except IntegrityError:
@@ -122,3 +119,54 @@ class Airplane(Resource):
             return jsonify(airplane.to_dict()), 201
         json_abort(400, errors=form.errors)
 
+
+class Flights(Resource):
+    def get(self):
+        items_per_page = request.args.get('per_page', 25, type=int)
+        page = request.args.get('page', 1, type=int)
+        search = request.args.get('search', '', type=str)
+
+        query = models.Flight.query
+        if search:
+            query = query.msearch(search)
+
+
+        data = models.Flight.to_collection_dict(query, page, items_per_page, 'api.flights', search=search)
+        return jsonify(data)
+
+    @admin_required
+    def post(self):
+        form = FlightForm(data=request.json)
+        if form.validate():
+            flight = models.Flight()
+            form.populate_obj(flight)
+            db.session.add(flight)
+            db.session.commit()
+            return jsonify(flight.to_dict()), 201
+        json_abort(400, errors=form.errors)
+
+
+class Flight(Resource):
+    def get(self, flight_id):
+        flight = get_or_404(models.Flight, flight_id)
+        return jsonify(flight.to_dict())
+
+    @admin_required
+    def delete(self, flight_id):
+        flight = get_or_404(models.Flight, flight_id)
+        db.session.delete(flight)
+        db.session.commit()
+        return '', 204
+
+    @admin_required
+    def patch(self, flight_id):
+        flight = get_or_404(models.Flight, flight_id)
+        form = FlightForm(data=request.json)
+        if form.validate():
+            form.populate_obj(flight)
+            flight.airplane_id = form.airplane_id
+            flight.departing_id = form.departing_id
+            flight.arriving_id = form.arriving_id
+            db.session.commit()
+            return jsonify(flight.to_dict()), 201
+        json_abort(400, errors=form.errors)
